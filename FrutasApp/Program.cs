@@ -176,8 +176,9 @@ namespace FrutasApp
                 Console.WriteLine("5. Adicionar nova fruta");
                 Console.WriteLine("6. Atualizar fruta existente");
                 Console.WriteLine("7. Excluir fruta");
-                Console.WriteLine("8. Limpar banco de dados e reinicializar");  // Nova opção
-                Console.WriteLine("9. Sair");
+                Console.WriteLine("8. Limpar banco de dados e reinicializar");
+                Console.WriteLine("9. Exibir estatísticas de frutas");
+                Console.WriteLine("10. Sair");
                 Console.Write("\nEscolha uma opção: ");
 
                 if (int.TryParse(Console.ReadLine(), out int opcao))
@@ -211,6 +212,9 @@ namespace FrutasApp
                             LimparBancoDados(context);
                             break;
                         case 9:
+                            ExibirEstatisticas(context);
+                            break;
+                        case 10:
                             sair = true;
                             break;
                         default:
@@ -565,6 +569,51 @@ namespace FrutasApp
 
             Console.WriteLine("Pressione qualquer tecla para continuar...");
             Console.ReadKey();
+        }
+
+        static void ExibirEstatisticas(AppDbContext context)
+        {
+            Console.WriteLine("\n=== ESTATÍSTICAS DE FRUTAS ===\n");
+
+            // Total de frutas no banco
+            int totalFrutas = context.Frutas.Count();
+            Console.WriteLine($"Total de frutas cadastradas: {totalFrutas}");
+
+            if (totalFrutas == 0)
+            {
+                Console.WriteLine("Não há frutas suficientes para calcular estatísticas.");
+                return;
+            }
+
+            // Peso médio das frutas
+            double pesoMedio = context.Frutas.Average(f => f.Peso);
+            Console.WriteLine($"Peso médio das frutas: {pesoMedio:F2} kg");
+
+            // Distribuição por sabor
+            Console.WriteLine("\nDistribuição por sabor:");
+            var distribuicaoPorSabor = context.Frutas
+                .GroupBy(f => f.Sabor)
+                .Select(g => new { Sabor = g.Key, Quantidade = g.Count() })
+                .ToList();
+
+            foreach (var item in distribuicaoPorSabor)
+            {
+                Console.WriteLine($"- {item.Sabor}: {item.Quantidade} fruta(s) ({(double)item.Quantidade / totalFrutas * 100:F1}%)");
+            }
+
+
+            // Frutas por categoria
+            Console.WriteLine("\nFrutas por categoria:");
+            var frutasPorCategoria = context.Frutas
+                .Include(f => f.Categoria)
+                .GroupBy(f => f.Categoria.Nome)
+                .Select(g => new { Categoria = g.Key, Quantidade = g.Count() })
+                .ToList();
+
+            foreach (var item in frutasPorCategoria)
+            {
+                Console.WriteLine($"- {item.Categoria}: {item.Quantidade} fruta(s)");
+            }
         }
     }
 }
