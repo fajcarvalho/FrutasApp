@@ -9,14 +9,14 @@ namespace FrutasApp
     class Program
     {
         // Metodo Main
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             InicializarDados();
 
             using (var context = new AppDbContext())
             {
                 // Exibir o menu e processar as opções do usuário
-                ExibirMenuEProcessarOpcoes(context);
+                await ExibirMenuEProcessarOpcoes(context);
             }
 
             Console.WriteLine("Pressione qualquer tecla para sair...");
@@ -162,7 +162,7 @@ namespace FrutasApp
         }
 
         // Método para exibir o menu e processar as operações CRUD
-        static void ExibirMenuEProcessarOpcoes(AppDbContext context)
+        static async Task ExibirMenuEProcessarOpcoes(AppDbContext context)
         {
             bool sair = false;
 
@@ -188,7 +188,7 @@ namespace FrutasApp
                     switch (opcao)
                     {
                         case 1:
-                            ListarFrutas(context);
+                            await ListarFrutas(context);
                             break;
                         case 2:
                             BuscarFrutaPorId(context);
@@ -282,12 +282,13 @@ namespace FrutasApp
         }
 
         // READ - Listar todas as frutas
-        static void ListarFrutas(AppDbContext context)
+        static async Task ListarFrutas(AppDbContext context)
         {
             // Buscar todas as frutas incluindo suas categorias
-            var frutas = context.Frutas
+            var frutas = await context.Frutas
                 .Include(f => f.Categoria)
-                .ToList();
+                .OrderBy(f => f.Id)
+                .ToListAsync();
 
             if (!frutas.Any())
             {
